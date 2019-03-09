@@ -7,13 +7,14 @@ i = 0
 root = Tk()
 w = Label(root, text="BlueOrigin Flight-Info Simulator", font='Helvetica 20 bold').grid(row=0, column=1)
 
-text_packet = Label(text="")
-restart = Button(root, text="Restart", font='Helvetica 15 bold').grid(row=15, column=2)
+text_packet = Label(text="").grid(row=17, column=1)
+packet_title = Label(text="Text Packet:").grid(row=16, column=1)
+restart = Button(root, text="Restart", font='Helvetica 15 bold').grid(row=0, column=5)
 connected = False
 exp_time = 0
 
 
-
+arduinoOutput = Label(text="Arduino Output", font='Helvetica 18 bold').grid(row=18, column=1)
 
 try:
     s = serial.Serial('/dev/tty.usbmodem1411', 115200, timeout=5)  # BlueOrigin specifies 115,200 baud rate
@@ -33,7 +34,6 @@ def running():
 
         time.sleep(.1)  # data sent at 10Hz
         text = (status.get() + "," + "%.2f," % exp_time
-                + ','
                 + str(altitude.get()) + ','
                 + str(x_vel.get()) + ',' + str(y_vel.get()) + ',' + str(z_vel.get()) + ','
                 + str(acceleration.get()) + ',0.000000,0.000000'
@@ -50,7 +50,7 @@ def running():
                 + str(landing_warning.get())
                 + ',' + str(fault_warning.get()))
 
-        text_packet = Label(text="Text Packet:" + '\n' + "'" + text + "'").grid(row=15, column=1)
+        text_packet = Label(text=text, font='Helvetica 16 bold').grid(row=17, column=1)
         if connected:
             s.write('A')
         root.update_idletasks()
@@ -124,28 +124,28 @@ R11 = Radiobutton(root, text="Finished", variable=status, value='J').grid(row=13
 
 # Values
 
-l1 = Label(root, text="Velocity X-Axis      ").grid(row=3, column=2, sticky='w')
-e1 = Entry(root, text="Velocity X-Axis      ", textvariable=x_vel, width=5).grid(row=3, column=2, sticky='e')
-l2 = Label(root, text="Velocity Y-Axis      ").grid(row=4, column=2, sticky='w')
-e2 = Entry(root, text="Velocity Y-Axis      ", textvariable=y_vel, width=5).grid(row=4, column=2, sticky='e')
-l1 = Label(root, text="Velocity Z-Axis      ").grid(row=5, column=2, sticky='w')
-e3 = Entry(root, text="Velocity Z-Axis      ", textvariable=z_vel, width=5).grid(row=5, column=2, sticky='e')
-l1 = Label(root, text="Acceleration         ").grid(row=6, column=2, sticky='w')
-e4 = Entry(root, text="Acceleration         ", textvariable=x_vel, width=5).grid(row=6, column=2, sticky='e')
-l1 = Label(root, text="Altitude             ").grid(row=7, column=2, sticky='w')
-e5 = Entry(root, text="Altitude             ", textvariable=y_vel, width=5).grid(row=7, column=2, sticky='e')
+l1 = Label(root, text="Velocity X-Axis        ").grid(row=3, column=2, sticky='w')
+e1 = Entry(root, text="Velocity X-Axis        ", textvariable=x_vel, width=5).grid(row=3, column=2, sticky='e')
+l2 = Label(root, text="Velocity Y-Axis        ").grid(row=4, column=2, sticky='w')
+e2 = Entry(root, text="Velocity Y-Axis        ", textvariable=y_vel, width=5).grid(row=4, column=2, sticky='e')
+l1 = Label(root, text="Velocity Z-Axis        ").grid(row=5, column=2, sticky='w')
+e3 = Entry(root, text="Velocity Z-Axis        ", textvariable=z_vel, width=5).grid(row=5, column=2, sticky='e')
+l1 = Label(root, text="Acceleration (g)       ").grid(row=6, column=2, sticky='w')
+e4 = Entry(root, text="Acceleration           ", textvariable=x_vel, width=5).grid(row=6, column=2, sticky='e')
+l1 = Label(root, text="Altitude               ").grid(row=7, column=2, sticky='w')
+e5 = Entry(root, text="Altitude               ", textvariable=y_vel, width=5).grid(row=7, column=2, sticky='e')
 l1 = Label(root, text="Angular Velocity X-Axis").grid(row=8, column=2, sticky='w')
 e1 = Entry(root, text="Angular Velocity X-Axis", textvariable=x_vel, width=5).grid(row=8, column=2, sticky='e')
 l1 = Label(root, text="Angular Velocity Y-Axis").grid(row=9, column=2, sticky='w')
 e2 = Entry(root, text="Angular Velocity Y-Axis", textvariable=y_vel, width=5).grid(row=9, column=2, sticky='e')
 l1 = Label(root, text="Angular Velocity Z-Axis").grid(row=10, column=2, sticky='w')
 e3 = Entry(root, text="Angular Velocity Z-Axis", textvariable=z_vel, width=5).grid(row=10, column=2, sticky='e')
-l1 = Label(root, text="Attitude X-Axis      ").grid(row=11, column=2, sticky='w')
-e1 = Entry(root, text="Attitude X-Axis      ", textvariable=x_vel, width=5).grid(row=11, column=2, sticky='e')
-l1 = Label(root, text="Attitude X-Axis      ").grid(row=12, column=2, sticky='w')
-e2 = Entry(root, text="Attitude Y-Axis      ", textvariable=y_vel, width=5).grid(row=12, column=2, sticky='e')
-l1 = Label(root, text="Attitude X-Axis      ").grid(row=13, column=2, sticky='w')
-e3 = Entry(root, text="Attitude Z-Axis      ", textvariable=z_vel, width=5).grid(row=13, column=2, sticky='e')
+l1 = Label(root, text="Attitude X-Axis        ").grid(row=11, column=2, sticky='w')
+e1 = Entry(root, text="Attitude X-Axis        ", textvariable=x_vel, width=5).grid(row=11, column=2, sticky='e')
+l1 = Label(root, text="Attitude X-Axis        ").grid(row=12, column=2, sticky='w')
+e2 = Entry(root, text="Attitude Y-Axis        ", textvariable=y_vel, width=5).grid(row=12, column=2, sticky='e')
+l1 = Label(root, text="Attitude X-Axis        ").grid(row=13, column=2, sticky='w')
+e3 = Entry(root, text="Attitude Z-Axis        ", textvariable=z_vel, width=5).grid(row=13, column=2, sticky='e')
 
 
 # display everything
@@ -159,7 +159,11 @@ subMenu = Menu(menuBar)
 
 menuBar.add_cascade(label='Representative Flight Simulation', menu=subMenu)
 subMenu.add_command(label='Run', command=root.quit())
+subMenu.add_command(label='Run x10 Speed', command=root.quit())
 subMenu.add_command(label='Stop', command=root.quit())
+
+
+#create window for viewing
 
 running()
 

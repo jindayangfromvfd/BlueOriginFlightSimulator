@@ -2,7 +2,7 @@ import serial
 import time
 from tkinter import *
 import random
-
+from PIL import Image, ImageTk
 
 i = 0
 root = Tk()
@@ -28,7 +28,7 @@ timesTen = False
 
 root.configure(bg=darkish)
 
-w = Label(root, text="BlueOrigin FlightSim", font='Helvetica 20 bold', bg=darkish, fg=whitish).grid(row=0, column=0, columnspan=5, padx=10)
+w = Label(root, text="BlueOrigin FlightSim", font='Helvetica 20 bold', bg=darkish, fg=whitish).grid(row=0, column=0, columnspan=6, padx=10)
 
 text_packet = Label(text="", bg=darkish, fg=whitish).grid(row=18, column=4)
 packet_title = Label(text="Text Packet:", bg=darkish, fg=whitish).grid(row=11, column=4)
@@ -275,9 +275,6 @@ top = root.winfo_toplevel()
 menuBar = Menu(top)
 top['menu'] = menuBar
 subMenu = Menu(menuBar)
-
-
-
 
 
 def normalSpeed():

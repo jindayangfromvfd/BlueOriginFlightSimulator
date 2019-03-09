@@ -13,6 +13,14 @@ whitish = '#%02x%02x%02x' % (214, 216, 218)
 code_green = '#%02x%02x%02x' % (80, 200, 70)
 code_dark = '#%02x%02x%02x' % (23, 24, 30)
 
+
+class sim:
+    simRunning = False
+    simStart = False
+
+
+theSim = sim
+
 timesTen = False
 
 root.configure(bg=darkish)
@@ -25,6 +33,8 @@ restart = Button(root, text="Restart", font='Helvetica 15 bold', bg=darkish, hig
 connected = False
 exp_time = 0
 
+simRunning = False
+simStart = False
 
 arduinoOutput = Label(text="Arduino Output   \n", font='Helvetica 18 bold', bg=darkish, fg=whitish).grid(row=19, column=4)
 
@@ -44,6 +54,12 @@ def running():
             exp_time += 1
         else:
             exp_time += 0.1
+
+        if theSim.simStart:
+            msgSim = Label(root, text="[0:00] Main Engine Ignition Command", font='Helvetica 18 bold', bg=darkish,
+                           fg=whitish).grid(row=2, rowspan=7, column=4, padx=20)
+            exp_time = 0
+            theSim.simStart = False
 
         exp_time += random.randrange(-1, 1, 1)/100  # if second decimal isn't always 0
 
@@ -177,7 +193,11 @@ menuBar = Menu(top)
 top['menu'] = menuBar
 subMenu = Menu(menuBar)
 
-def normalSpeed() :
+
+
+
+
+def normalSpeed():
     timesTen = False
 
 
@@ -185,27 +205,14 @@ def timesTen():
     timesTen = True
 
 
-def runSimulation(msgSim):
+def runSimulation(theSim):
 
-    listbox = Listbox(root).grid(row=2, rowspan=7, column=4, sticky='w', padx=20)
-
-    # msgSim = Label(root, text="[0:00] Main Engine Ignition Command", font='Helvetica 18 bold', bg=darkish, fg=whitish).grid(row=2, rowspan=7, column=4, sticky='w', padx=20)
-
-    # time.sleep(7)
-
-    
-
-    # msgSim = Label(root, text="[0:07] Liftoff", font='Helvetica 18 bold', bg=darkish,
-              #  fg=whitish).grid(row=2, rowspan=7, column=4, sticky='w', padx=20)
-
-# time.sleep(135)
-
-   #  msgSim = Label(root, text="[1:15] Max G on Ascent", font='Helvetica 18 bold', bg=darkish,
-                   # fg=whitish).grid(row=2, rowspan=7, column=4, sticky='w', padx=20)
+    theSim.simRunning = True
+    theSim.simStart = True
 
 
 menuBar.add_cascade(label='Representative Flight Simulation', menu=subMenu)
-subMenu.add_command(label='Run Simulation', command=runSimulation(msg))
+subMenu.add_command(label='Run Simulation', command=runSimulation(theSim))
 subMenu.add_command(label='x10 Speed', command=timesTen())
 subMenu.add_command(label='Regular Speed', command=normalSpeed())
 

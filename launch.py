@@ -17,9 +17,11 @@ code_dark = '#%02x%02x%02x' % (23, 24, 30)
 class sim:
     simRunning = False
     simStart = False
+    exp_time = 0
+    msgSim = Label(root)
 
 
-theSim = sim
+flightSim = sim
 
 timesTen = False
 
@@ -47,24 +49,30 @@ except:
 
 def running():
 
-    exp_time = 0
-
     while True:
         if timesTen:
-            exp_time += 1
+            flightSim.exp_time += 1
         else:
-            exp_time += 0.1
+            flightSim.exp_time += 0.1
 
-        if theSim.simStart:
-            msgSim = Label(root, text="[0:00] Main Engine Ignition Command", font='Helvetica 18 bold', bg=darkish,
-                           fg=whitish).grid(row=2, rowspan=7, column=4, padx=20)
-            exp_time = 0
-            theSim.simStart = False
+        if flightSim.simStart:
+            flightSim.msgSim = Label(root, text="[0:00] Main Engine Ignition Command", font='Helvetica 18 bold', bg=darkish,
+                           fg=whitish).grid(row=2, rowspan=7, column=4)
+            flightSim.exp_time = 0
+            time.sleep(2)
+            flightSim.simStart = False
 
-        exp_time += random.randrange(-1, 1, 1)/100  # if second decimal isn't always 0
+        if flightSim.simRunning:
+            if flightSim.exp_time > 7 and flightSim.exp_time < 8 :
+                flightSim.msgSim = Label(root, text="[0:07] Liftoff", font='Helvetica 18 bold', bg=darkish,
+                               fg=whitish).grid(row=2, rowspan=7, column=4)
+                altitude.set(3750)
+                status.set('A')
+
+        flightSim.exp_time += random.randrange(-1, 1, 1)/100  # if second decimal isn't always 0
 
         time.sleep(.1)  # data sent at 10Hz
-        text = ('['+status.get() + "," + "%.2f," % exp_time
+        text = ('['+status.get() + "," + "%.2f," % flightSim.exp_time
                 + str(altitude.get()) + ','
                 + str(x_vel.get()) + ',' + str(y_vel.get()) + ',' + str(z_vel.get()) + ','
                 + str(acceleration.get()) + ',0.000000,0.000000'
@@ -82,7 +90,7 @@ def running():
                 + ',' + str(fault_warning.get())+']')
 
         text_packet = Label(text=text, font='Helvetica 17 bold', bg=darkish, fg=code_green).grid(row=12, column=4)
-        expTime = Label(text="Experimental Time : " + "%.1f seconds" % exp_time, font='Helvetica 18 bold', bg=darkish, fg=whitish).grid(
+        expTime = Label(text="Experimental Time : " + "%.1f seconds" % flightSim.exp_time, font='Helvetica 18 bold', bg=darkish, fg=whitish).grid(
             row=2, column=4)
         if connected:
             s.write('A')
@@ -205,16 +213,16 @@ def timesTen():
     timesTen = True
 
 
-def runSimulation(theSim):
+def runSimulation():
 
-    theSim.simRunning = True
-    theSim.simStart = True
+    flightSim.simRunning = True
+    flightSim.simStart = True
 
 
 menuBar.add_cascade(label='Representative Flight Simulation', menu=subMenu)
-subMenu.add_command(label='Run Simulation', command=runSimulation(theSim))
-subMenu.add_command(label='x10 Speed', command=timesTen())
-subMenu.add_command(label='Regular Speed', command=normalSpeed())
+subMenu.add_command(label='Run Simulation', command=runSimulation)
+subMenu.add_command(label='x10 Speed', command=timesTen)
+subMenu.add_command(label='Regular Speed', command=normalSpeed)
 
 
 #create window for viewing

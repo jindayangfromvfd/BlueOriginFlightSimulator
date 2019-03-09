@@ -2,6 +2,8 @@ import serial
 import time
 from tkinter import *
 import random
+import sys
+import glob
 from PIL import Image, ImageTk
 
 i = 0
@@ -11,6 +13,7 @@ root = Tk()
 darkish = '#%02x%02x%02x' % (29, 30, 38)
 whitish = '#%02x%02x%02x' % (214, 216, 218)
 code_green = '#%02x%02x%02x' % (80, 200, 70)
+code_green_light = '#%02x%02x%02x' % (170, 200, 150)
 code_dark = '#%02x%02x%02x' % (23, 24, 30)
 
 
@@ -19,6 +22,7 @@ class sim:
     simStart = False
     exp_time = 0
     msg = ""
+    msgOld = ""
     timesTen = False
 
 
@@ -65,7 +69,12 @@ def running():
 
     msgSim = Label(root, text=flightSim.msg, font='Helvetica 18 bold', bg=code_dark,
                    fg=code_green)
-    msgSim.grid(row=2, rowspan=7, column=4)
+    msgSim.grid(row=5, rowspan=7, column=4, sticky="n")
+
+    msgSimOld = Label(root, text=flightSim.msg, font='Helvetica 16 italic', bg=code_dark,
+                   fg=code_green_light)
+    msgSimOld.grid(row=4, rowspan=7, column=4, sticky="n")
+
     text_packet = Label(text="", font='Helvetica 17 bold', bg=darkish, fg=code_green)
     text_packet.grid(row=12, column=4)
     expTime = Label(text="Experimental Time : " + "%.1f seconds" % flightSim.exp_time, font='Helvetica 18 bold',
@@ -85,7 +94,7 @@ def running():
         if flightSim.simStart:
             flightSim.msg = "[0:00] Main Engine Ignition Command"
             flightSim.exp_time = 0
-            time.sleep(2)
+            time.sleep(0.5)
             flightSim.simStart = False
             altitude.set(3750)
             liftoff_warning.set(1)
@@ -103,7 +112,7 @@ def running():
             if flightSim.exp_time > 7 and flightSim.exp_time < (7 + buffer) :
 
                 flightSim.msg = "[0:07] Liftoff"
-
+                flightSim.msgOld = "[0:00] Main Engine Ignition Command"
                 liftoff_warning.set(0)
                 status.set('A')
 
@@ -111,35 +120,48 @@ def running():
             if flightSim.exp_time > 135 and flightSim.exp_time < (135  + buffer) :
 
                 flightSim.msg = "[2:15] Max G on Ascent"
-
+                flightSim.msgOld = "[0:07] Liftoff"
                 status.set('A')
 
             if flightSim.exp_time > 153 and flightSim.exp_time < (153 +  buffer):
 
                 flightSim.msg = "[2:33] Main Engine Cut Off"
-
+                flightSim.msgOld = "[2:15] Max G on Ascent"
                 status.set('B')
 
             if flightSim.exp_time > 160 and flightSim.exp_time < (160 + buffer ):
 
                 flightSim.msg = "[2:40] Separate CC"
+                flightSim.msgOld = "[2:33] Main Engine Cut Off"
 
                 status.set('C')
 
             if flightSim.exp_time > 179 and flightSim.exp_time < (179 + buffer ):
 
+                # Microgravity begins here
+
                 flightSim.msg = "[2:59] Sensed Acceleration < 0.001g"
+                flightSim.msgOld = "[2:40] Separate CC"
+
                 status.set('D')
+                rcs_warning.set(1)
+
 
             if flightSim.exp_time > 245 and flightSim.exp_time < (245 + buffer):
+
                 flightSim.msg = "[4:05] Apogee"
+                flightSim.msgOld = "[2:59] Sensed Acceleration < 0.001g"
+
                 status.set('E')
                 y_vel.set(0)
 
             if flightSim.exp_time > 307 and flightSim.exp_time < (307 + buffer):
                 flightSim.msg = "[5:07] Sensed Acceleration > 0.001g"
+                flightSim.msgOld =  "[4:05] Apogee"
                 status.set('F')
                 y_vel.set(0)
+                rcs_warning.set(0)
+
 
         flightSim.exp_time += random.randrange(-1, 1, 1)/100  # if second decimal isn't always 0
 
@@ -166,6 +188,8 @@ def running():
         text_packet.config(text=text)
         expTime.config(text="Experimental Time : " + "%.1f seconds" % flightSim.exp_time)
         msgSim.config(text=flightSim.msg)
+        msgSimOld.config(text=flightSim.msgOld)
+
 
         if connected:
             s.write(text)
@@ -275,7 +299,7 @@ top = root.winfo_toplevel()
 menuBar = Menu(top)
 top['menu'] = menuBar
 subMenu = Menu(menuBar)
-
+portMenu = Menu(menuBar)
 
 def normalSpeed():
     flightSim.timesTen = False
@@ -295,6 +319,25 @@ menuBar.add_cascade(label='Representative Flight Simulation', menu=subMenu)
 subMenu.add_command(label='Run Simulation', command=runSimulation)
 subMenu.add_command(label='x10 Speed', command=timesTen)
 subMenu.add_command(label='Regular Speed', command=normalSpeed)
+
+menuBar.add_cascade(label='Ports', menu=portMenu)
+
+if sys.platform.startswith('win'):
+    ports = ['COM%s' % (i + 1) for i in range(256)] #checks windows ports
+elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+    ports = glob.glob('/dev/tty[A-Za-z]*') #checks for anything starting with /dev/tty
+elif sys.platform.startswith('darwin'):
+    ports = glob.glob('/dev/tty.*')
+else:
+    raise EnvironmentError('Your platform is not supported')
+
+for port in ports:
+    try:
+        s = serial.Serial(port)
+        s.close()
+        portMenu.add_command(label=port)
+    except (OSError, serial.SerialException):
+        pass
 
 
 #create window for viewing

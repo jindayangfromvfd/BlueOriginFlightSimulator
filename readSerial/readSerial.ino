@@ -1,3 +1,10 @@
+
+int liftoff = 0;
+int microg_begin = 0;
+int microg_end = 0;
+int rocket_land = 0;
+
+
 void setup() {
         Serial.begin(115200);     // opens serial port, sets baudrate to 9600 bps
 }

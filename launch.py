@@ -6,11 +6,13 @@ import random
 i = 0
 root = Tk()
 w = Label(root, text="BlueOrigin Flight-Info Simulator", font='Helvetica 20 bold').grid(row=0, column=1)
-root.title("BlueOrigin FlightSim")
+
 text_packet = Label(text="")
-restart = Button(root, text="⟲", font='Helvetica 20 bold').grid(row=14, column=2, sticky="e")
+restart = Button(root, text="Restart", font='Helvetica 15 bold').grid(row=15, column=2)
 connected = False
 exp_time = 0
+
+
 
 
 try:
@@ -35,7 +37,9 @@ def running():
                 + str(altitude.get()) + ','
                 + str(x_vel.get()) + ',' + str(y_vel.get()) + ',' + str(z_vel.get()) + ','
                 + str(acceleration.get()) + ',0.000000,0.000000'
-                + str(x_alt.get()) + ',' + str(y_alt.get()) + ',' + str(z_alt.get()) + ','
+
+                # Attitude is orientation with respect to an inertial frame of reference
+                + str(x_att.get()) + ',' + str(y_att.get()) + ',' + str(z_att.get()) + ','
                 + str(x_ang_vel.get()) + ','
                 + str(y_ang_vel.get()) + ','
                 + str(z_ang_vel.get()) + ','
@@ -46,8 +50,7 @@ def running():
                 + str(landing_warning.get())
                 + ',' + str(fault_warning.get()))
 
-        text_packet = Label(text="Text Packet:" + '\n' + "'" + text + "'").grid(row=14, column=1)
-
+        text_packet = Label(text="Text Packet:" + '\n' + "'" + text + "'").grid(row=15, column=1)
         if connected:
             s.write('A')
         root.update_idletasks()
@@ -65,9 +68,9 @@ z_vel = DoubleVar()         # 6
 acceleration = DoubleVar()  # 7
 # reserved                  # 8
 # reserved                  # 9
-x_alt = DoubleVar()         # 10
-y_alt = DoubleVar()         # 11
-z_alt = DoubleVar()         # 12
+x_att = DoubleVar()         # 10
+y_att = DoubleVar()         # 11
+z_att = DoubleVar()         # 12
 x_ang_vel = DoubleVar()     # 13
 y_ang_vel = DoubleVar()     # 14
 z_ang_vel = DoubleVar()     # 15
@@ -121,11 +124,42 @@ R11 = Radiobutton(root, text="Finished", variable=status, value='J').grid(row=13
 
 # Values
 
-e1 = Entry(root, text="Velocity X-Axis", textvariable=x_vel).grid(row=3, column=2, sticky='w')
-e2 = Entry(root, text="Velocity Y-Axis", textvariable=y_vel).grid(row=4, column=2, sticky='w')
-e3 = Entry(root, text="Velocity Z-Axis", textvariable=z_vel).grid(row=5, column=2, sticky='w')
+l1 = Label(root, text="Velocity X-Axis      ").grid(row=3, column=2, sticky='w')
+e1 = Entry(root, text="Velocity X-Axis      ", textvariable=x_vel, width=5).grid(row=3, column=2, sticky='e')
+l2 = Label(root, text="Velocity Y-Axis      ").grid(row=4, column=2, sticky='w')
+e2 = Entry(root, text="Velocity Y-Axis      ", textvariable=y_vel, width=5).grid(row=4, column=2, sticky='e')
+l1 = Label(root, text="Velocity Z-Axis      ").grid(row=5, column=2, sticky='w')
+e3 = Entry(root, text="Velocity Z-Axis      ", textvariable=z_vel, width=5).grid(row=5, column=2, sticky='e')
+l1 = Label(root, text="Acceleration         ").grid(row=6, column=2, sticky='w')
+e4 = Entry(root, text="Acceleration         ", textvariable=x_vel, width=5).grid(row=6, column=2, sticky='e')
+l1 = Label(root, text="Altitude             ").grid(row=7, column=2, sticky='w')
+e5 = Entry(root, text="Altitude             ", textvariable=y_vel, width=5).grid(row=7, column=2, sticky='e')
+l1 = Label(root, text="Angular Velocity X-Axis").grid(row=8, column=2, sticky='w')
+e1 = Entry(root, text="Angular Velocity X-Axis", textvariable=x_vel, width=5).grid(row=8, column=2, sticky='e')
+l1 = Label(root, text="Angular Velocity Y-Axis").grid(row=9, column=2, sticky='w')
+e2 = Entry(root, text="Angular Velocity Y-Axis", textvariable=y_vel, width=5).grid(row=9, column=2, sticky='e')
+l1 = Label(root, text="Angular Velocity Z-Axis").grid(row=10, column=2, sticky='w')
+e3 = Entry(root, text="Angular Velocity Z-Axis", textvariable=z_vel, width=5).grid(row=10, column=2, sticky='e')
+l1 = Label(root, text="Attitude X-Axis      ").grid(row=11, column=2, sticky='w')
+e1 = Entry(root, text="Attitude X-Axis      ", textvariable=x_vel, width=5).grid(row=11, column=2, sticky='e')
+l1 = Label(root, text="Attitude X-Axis      ").grid(row=12, column=2, sticky='w')
+e2 = Entry(root, text="Attitude Y-Axis      ", textvariable=y_vel, width=5).grid(row=12, column=2, sticky='e')
+l1 = Label(root, text="Attitude X-Axis      ").grid(row=13, column=2, sticky='w')
+e3 = Entry(root, text="Attitude Z-Axis      ", textvariable=z_vel, width=5).grid(row=13, column=2, sticky='e')
 
 
+# display everything
+
+root.title("BlueOrigin FlightSim")
+
+top = root.winfo_toplevel()
+menuBar = Menu(top)
+top['menu'] = menuBar
+subMenu = Menu(menuBar)
+
+menuBar.add_cascade(label='Representative Flight Simulation', menu=subMenu)
+subMenu.add_command(label='Run', command=root.quit())
+subMenu.add_command(label='Stop', command=root.quit())
 
 running()
 

@@ -18,7 +18,8 @@ class sim:
     simRunning = False
     simStart = False
     exp_time = 0
-    msgSim = Label(root)
+    msg = ""
+    timesTen = False
 
 
 flightSim = sim
@@ -47,39 +48,112 @@ except:
     errorText = Label(text="Can't connect to /dev/tty.usbmodem1411", fg="red", bg=darkish).grid(row=21, column=4)
 
 
+def linearUpdate(thing, time1, time2, dist):
+
+    timeNum = ((dist)/(time2-time1)) * 0.1
+    if (flightSim.exp_time > time1 and flightSim.exp_time < time2):
+        thing.set(thing.get() + timeNum)
+
+def expUpdate(thing, time1, time2, max):
+
+    timeNum = ((max - thing.get())/(time2-time1))
+    if (flightSim.exp_time > time1 and flightSim.exp_time < time2):
+        thing.set(thing.get() + timeNum)
+
+
 def running():
 
+    msgSim = Label(root, text=flightSim.msg, font='Helvetica 18 bold', bg=code_dark,
+                   fg=code_green)
+    msgSim.grid(row=2, rowspan=7, column=4)
+    text_packet = Label(text="", font='Helvetica 17 bold', bg=darkish, fg=code_green)
+    text_packet.grid(row=12, column=4)
+    expTime = Label(text="Experimental Time : " + "%.1f seconds" % flightSim.exp_time, font='Helvetica 18 bold',
+                    bg=darkish, fg=whitish)
+
+    expTime.grid(row=2, column=4)
+
+    buffer = 0.1
+
     while True:
-        if timesTen:
+        if flightSim.timesTen:
             flightSim.exp_time += 1
+            buffer = 1
         else:
             flightSim.exp_time += 0.1
 
         if flightSim.simStart:
-            flightSim.msgSim = Label(root, text="[0:00] Main Engine Ignition Command", font='Helvetica 18 bold', bg=darkish,
-                           fg=whitish).grid(row=2, rowspan=7, column=4)
+            flightSim.msg = "[0:00] Main Engine Ignition Command"
             flightSim.exp_time = 0
             time.sleep(2)
             flightSim.simStart = False
+            altitude.set(3750)
+            liftoff_warning.set(1)
+            status.set('@')
 
         if flightSim.simRunning:
-            if flightSim.exp_time > 7 and flightSim.exp_time < 8 :
-                flightSim.msgSim = Label(root, text="[0:07] Liftoff", font='Helvetica 18 bold', bg=darkish,
-                               fg=whitish).grid(row=2, rowspan=7, column=4)
-                altitude.set(3750)
+
+            linearUpdate(altitude, 7, 135, 142706-3750)
+            linearUpdate(altitude, 135, 153, 195343-142706)
+            linearUpdate(altitude, 153, 160, 215346-195343)
+
+            linearUpdate(y_vel, 7, 135, 2981)
+            linearUpdate(y_vel, 135, 153, 2890-2981)
+
+            if flightSim.exp_time > 7 and flightSim.exp_time < (7 + buffer) :
+
+                flightSim.msg = "[0:07] Liftoff"
+
+                liftoff_warning.set(0)
                 status.set('A')
+
+
+            if flightSim.exp_time > 135 and flightSim.exp_time < (135  + buffer) :
+
+                flightSim.msg = "[2:15] Max G on Ascent"
+
+                status.set('A')
+
+            if flightSim.exp_time > 153 and flightSim.exp_time < (153 +  buffer):
+
+                flightSim.msg = "[2:33] Main Engine Cut Off"
+
+                status.set('B')
+
+            if flightSim.exp_time > 160 and flightSim.exp_time < (160 + buffer ):
+
+                flightSim.msg = "[2:40] Separate CC"
+
+                status.set('C')
+
+            if flightSim.exp_time > 179 and flightSim.exp_time < (179 + buffer ):
+
+                flightSim.msg = "[2:59] Sensed Acceleration < 0.001g"
+                status.set('D')
+
+            if flightSim.exp_time > 245 and flightSim.exp_time < (245 + buffer):
+                flightSim.msg = "[4:05] Apogee"
+                status.set('E')
+                y_vel.set(0)
+
+            if flightSim.exp_time > 307 and flightSim.exp_time < (307 + buffer):
+                flightSim.msg = "[5:07] Sensed Acceleration > 0.001g"
+                status.set('F')
+                y_vel.set(0)
 
         flightSim.exp_time += random.randrange(-1, 1, 1)/100  # if second decimal isn't always 0
 
         time.sleep(.1)  # data sent at 10Hz
+
+
         text = ('['+status.get() + "," + "%.2f," % flightSim.exp_time
-                + str(altitude.get()) + ','
-                + str(x_vel.get()) + ',' + str(y_vel.get()) + ',' + str(z_vel.get()) + ','
-                + str(acceleration.get()) + ',0.000000,0.000000'
+                + "%.6f" % altitude.get() + ','
+                + "%.6f" % x_vel.get() + ',' + "%.6f" % y_vel.get() + ',' + "%.6f" % z_vel.get() + ','
+                + str(acceleration.get()) + ',\n0.000000,0.000000'
 
                 # Attitude is orientation with respect to an inertial frame of reference
                 + str(x_att.get()) + ',' + str(y_att.get()) + ',' + str(z_att.get()) + ','
-                + str(x_ang_vel.get()) + ',\n'
+                + str(x_ang_vel.get()) + ','
                 + str(y_ang_vel.get()) + ','
                 + str(z_ang_vel.get()) + ','
                 + str(liftoff_warning.get()) + ','
@@ -89,11 +163,12 @@ def running():
                 + str(landing_warning.get())
                 + ',' + str(fault_warning.get())+']')
 
-        text_packet = Label(text=text, font='Helvetica 17 bold', bg=darkish, fg=code_green).grid(row=12, column=4)
-        expTime = Label(text="Experimental Time : " + "%.1f seconds" % flightSim.exp_time, font='Helvetica 18 bold', bg=darkish, fg=whitish).grid(
-            row=2, column=4)
+        text_packet.config(text=text)
+        expTime.config(text="Experimental Time : " + "%.1f seconds" % flightSim.exp_time)
+        msgSim.config(text=flightSim.msg)
+
         if connected:
-            s.write('A')
+            s.write(text)
         root.update_idletasks()
         root.update()
 
@@ -171,22 +246,22 @@ l2 = Label(root, text="Velocity Y-Axis               ", bg=darkish, fg=whitish).
 e2 = Entry(root, text="Velocity Y-Axis               ", bg=darkish, fg=whitish, textvariable=y_vel, width=4, highlightbackground=code_dark).grid(row=4, column=2, sticky='e', padx=20)
 l1 = Label(root, text="Velocity Z-Axis               ", bg=darkish, fg=whitish).grid(row=5, column=2, sticky='w')
 e3 = Entry(root, text="Velocity Z-Axis               ", bg=darkish, fg=whitish, textvariable=z_vel, width=4, highlightbackground=code_dark).grid(row=5, column=2, sticky='e', padx=20)
-l1 = Label(root, text="Acceleration (g)              ", bg=darkish, fg=whitish).grid(row=6, column=2, sticky='w')
-e4 = Entry(root, text="Acceleration                  ", bg=darkish, fg=whitish, textvariable=x_vel, width=4, highlightbackground=code_dark).grid(row=6, column=2, sticky='e', padx=20)
+l1 = Label(root, text="Acceleration                  ", bg=darkish, fg=whitish).grid(row=6, column=2, sticky='w')
+e4 = Entry(root, text="Acceleration                  ", bg=darkish, fg=whitish, textvariable=acceleration, width=4, highlightbackground=code_dark).grid(row=6, column=2, sticky='e', padx=20)
 l1 = Label(root, text="Altitude                      ", bg=darkish, fg=whitish).grid(row=7, column=2, sticky='w')
-e5 = Entry(root, text="Altitude                      ", bg=darkish, fg=whitish, textvariable=y_vel, width=4, highlightbackground=code_dark).grid(row=7, column=2, sticky='e', padx=20)
+e5 = Entry(root, text="Altitude                      ", bg=darkish, fg=whitish, textvariable=altitude, width=4, highlightbackground=code_dark).grid(row=7, column=2, sticky='e', padx=20)
 l1 = Label(root, text="Angular Velocity X-Axis       ", bg=darkish, fg=whitish).grid(row=8, column=2, sticky='w')
-e1 = Entry(root, text="Angular Velocity X-Axis       ", bg=darkish, fg=whitish, textvariable=x_vel, width=4, highlightbackground=code_dark).grid(row=8, column=2, sticky='e', padx=20)
+e1 = Entry(root, text="Angular Velocity X-Axis       ", bg=darkish, fg=whitish, textvariable=x_ang_vel, width=4, highlightbackground=code_dark).grid(row=8, column=2, sticky='e', padx=20)
 l1 = Label(root, text="Angular Velocity Y-Axis       ", bg=darkish, fg=whitish).grid(row=9, column=2, sticky='w')
-e2 = Entry(root, text="Angular Velocity Y-Axis       ", bg=darkish, fg=whitish, textvariable=y_vel, width=4, highlightbackground=code_dark).grid(row=9, column=2, sticky='e', padx=20)
+e2 = Entry(root, text="Angular Velocity Y-Axis       ", bg=darkish, fg=whitish, textvariable=y_ang_vel, width=4, highlightbackground=code_dark).grid(row=9, column=2, sticky='e', padx=20)
 l1 = Label(root, text="Angular Velocity Z-Axis       ", bg=darkish, fg=whitish).grid(row=10, column=2, sticky='w')
-e3 = Entry(root, text="Angular Velocity Z-Axis       ", bg=darkish, fg=whitish, textvariable=z_vel, width=4, highlightbackground=code_dark).grid(row=10, column=2, sticky='e', padx=20)
+e3 = Entry(root, text="Angular Velocity Z-Axis       ", bg=darkish, fg=whitish, textvariable=z_ang_vel, width=4, highlightbackground=code_dark).grid(row=10, column=2, sticky='e', padx=20)
 l1 = Label(root, text="Attitude X-Axis               ", bg=darkish, fg=whitish).grid(row=11, column=2, sticky='w')
-e1 = Entry(root, text="Attitude X-Axis               ", bg=darkish, fg=whitish, textvariable=x_vel, width=4, highlightbackground=code_dark).grid(row=11, column=2, sticky='e', padx=20)
-l1 = Label(root, text="Attitude X-Axis               ", bg=darkish, fg=whitish).grid(row=12, column=2, sticky='w')
-e2 = Entry(root, text="Attitude Y-Axis               ", bg=darkish, fg=whitish, textvariable=y_vel, width=4, highlightbackground=code_dark).grid(row=12, column=2, sticky='e', padx=20)
-l1 = Label(root, text="Attitude X-Axis               ", bg=darkish, fg=whitish).grid(row=13, column=2, sticky='w')
-e3 = Entry(root, text="Attitude Z-Axis               ", bg=darkish, fg=whitish, textvariable=z_vel, width=4, highlightbackground=code_dark).grid(row=13, column=2, sticky='e', padx=20)
+e1 = Entry(root, text="Attitude X-Axis               ", bg=darkish, fg=whitish, textvariable=x_att, width=4, highlightbackground=code_dark).grid(row=11, column=2, sticky='e', padx=20)
+l1 = Label(root, text="Attitude Y-Axis               ", bg=darkish, fg=whitish).grid(row=12, column=2, sticky='w')
+e2 = Entry(root, text="Attitude Y-Axis               ", bg=darkish, fg=whitish, textvariable=y_att, width=4, highlightbackground=code_dark).grid(row=12, column=2, sticky='e', padx=20)
+l1 = Label(root, text="Attitude Z-Axis               ", bg=darkish, fg=whitish).grid(row=13, column=2, sticky='w')
+e3 = Entry(root, text="Attitude Z-Axis               ", bg=darkish, fg=whitish, textvariable=z_att, width=4, highlightbackground=code_dark).grid(row=13, column=2, sticky='e', padx=20)
 
 output = Frame(root, width=600, height=150, bg=code_dark).grid(row=20, column=4, sticky='e', padx=20)
 
@@ -206,11 +281,11 @@ subMenu = Menu(menuBar)
 
 
 def normalSpeed():
-    timesTen = False
+    flightSim.timesTen = False
 
 
 def timesTen():
-    timesTen = True
+    flightSim.timesTen = True
 
 
 def runSimulation():
@@ -227,6 +302,7 @@ subMenu.add_command(label='Regular Speed', command=normalSpeed)
 
 #create window for viewing
 
+timesTen = False
 running()
 
 

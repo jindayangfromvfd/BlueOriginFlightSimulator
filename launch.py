@@ -1,13 +1,4 @@
-import serial
-import time
-from tkinter import *
-import random
-import sys
-import glob
-from PIL import Image, ImageTk
 
-i = 0
-root = Tk()
 
 # Colors
 darkish = '#%02x%02x%02x' % (29, 30, 38)
